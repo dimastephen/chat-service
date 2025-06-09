@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+    redis:
+      image: redis:7
+      command: redis-server --requirepass "authredis"
+      ports:
+      - "6379:6379"
+      volumes:
+        - redis-data:/data
+      networks:
+        - chat-network
+      env_file:
+        - local.env
+volumes:
+  redis-data:
+
+networks:
+  chat-network:
+    driver: bridge

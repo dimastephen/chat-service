@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package chatServerV1;
+
+import "google/protobuf/empty.proto";
+import"google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package="github.com/dimastephen/chatServerV1/grpc/api/chatServerV1;chatServerV1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info:{
+    title: "ChatAPI"
+    version: "0.1"
+  };
+};
+
+service ChatServer{
+  rpc Create(CreateRequest) returns(CreateResponse){
+    option (google.api.http) = {
+      post: "/chat/create"
+      body: "*"
+    };
+  };
+  rpc Delete(DeleteRequest) returns(DeleteResponse){
+    option (google.api.http) = {
+      delete: "/chat"
+    };
+  };
+  rpc SendMessage(SendMessageRequest) returns(SendMessageResponse);
+}
+
+message CreateRequest{
+  repeated string usernames = 1 [(validate.rules).repeated.items.string = {ignore_empty:false, min_len:1,max_len:50}];
+}
+
+message CreateResponse{
+  int64 id = 1;
+}
+
+message DeleteRequest{
+  int64 id = 1 [(validate.rules).int64.gt=0];
+}
+
+message DeleteResponse{
+  google.protobuf.Empty empty=1;
+}
+
+message Message{
+  string from=1;
+  string text=2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message SendMessageRequest{
+  Message message =1;
+}
+
+message SendMessageResponse{
+  google.protobuf.Empty empty =1;
+}

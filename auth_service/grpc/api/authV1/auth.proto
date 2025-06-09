@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package authV1;
+
+option go_package="github.com/dimastephen/auth/grpc/pkg/authV1;authV1";
+
+service Auth{
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc GetRefreshToken(GetRefreshTokenRequest) returns (GetRefreshTokenResponse);
+  rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse);
+}
+
+message RegisterRequest{
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterResponse{
+  int64 id = 1;
+}
+
+message LoginRequest{
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse{
+  string refreshToken =1;
+}
+
+message GetRefreshTokenRequest{
+  string refreshToken = 1;
+}
+
+message GetRefreshTokenResponse{
+  string refreshToken = 1;
+}
+
+message GetAccessTokenRequest{
+  string refreshToken = 1;
+}
+
+message GetAccessTokenResponse{
+  string accessToken = 1;
+}
