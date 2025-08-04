@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"context"
-	"github.com/dimastephen/utils/rate_limiter"
+	"github.com/dimastephen/utils/pkg/rate_limiter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

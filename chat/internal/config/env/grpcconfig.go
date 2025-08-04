@@ -9,7 +9,7 @@ import (
 
 const (
 	grpcHostEnvName = "GRPC_HOST"
-	grpcPortEnvName = "GRPC_PORT"
+	grpcPortEnvName = "CHAT_GRPC_PORT"
 )
 
 type grpcConfig struct {

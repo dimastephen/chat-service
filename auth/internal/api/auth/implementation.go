@@ -3,8 +3,10 @@ package auth
 import (
 	"context"
 	desc "github.com/dimastephen/auth/grpc/pkg/authV1"
+	"github.com/dimastephen/auth/internal/logger"
 	"github.com/dimastephen/auth/internal/models"
 	"github.com/dimastephen/auth/internal/service"
+	"go.uber.org/zap"
 )
 
 type AuthImplementation struct {
@@ -19,24 +21,31 @@ func NewImplementation(service service.AuthService) *AuthImplementation {
 func (i *AuthImplementation) Register(ctx context.Context, r *desc.RegisterRequest) (*desc.RegisterResponse, error) {
 	username := r.GetUsername()
 	password := r.GetPassword()
+	logger.Debug("Registering new user", zap.String("username", username))
 
 	user := &models.User{Password: password, Username: username}
 	id, err := i.authService.Register(ctx, user)
 	if err != nil {
+		logger.Error("Error registering user", zap.Error(err))
 		return nil, err
 	}
+	logger.Info("Successfuly registered user", zap.Int("id", id))
 	return &desc.RegisterResponse{Id: int64(id)}, nil
 }
 
 func (i *AuthImplementation) Login(ctx context.Context, r *desc.LoginRequest) (*desc.LoginResponse, error) {
 	username := r.GetUsername()
 	password := r.GetPassword()
+	logger.Debug("User try to log in", zap.String("username", username))
 
 	user := &models.User{Password: password, Username: username}
 	token, err := i.authService.Login(ctx, user)
 	if err != nil {
+		logger.Error("Failed to log in", zap.String("username", username), zap.Error(err))
 		return nil, err
 	}
+
+	logger.Info("User is successfully logged in", zap.String("username", username))
 	return &desc.LoginResponse{RefreshToken: token}, nil
 }
 
@@ -47,6 +56,7 @@ func (i *AuthImplementation) GetRefreshToken(ctx context.Context, r *desc.GetRef
 		return nil, err
 	}
 
+	logger.Info("User successfully got new refresh token")
 	return &desc.GetRefreshTokenResponse{RefreshToken: newToken}, nil
 }
 
@@ -58,5 +68,6 @@ func (i *AuthImplementation) GetAccessToken(ctx context.Context, r *desc.GetAcce
 		return nil, err
 	}
 
+	logger.Info("User successfully got new access token")
 	return &desc.GetAccessTokenResponse{AccessToken: accessToken}, nil
 }

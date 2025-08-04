@@ -4,14 +4,18 @@ import (
 	"context"
 	"github.com/dimastephen/chatServer/internal/config"
 	"github.com/dimastephen/chatServer/internal/interceptor"
+	"github.com/dimastephen/chatServer/internal/logger"
 	desc "github.com/dimastephen/chatServer/pkg/chatServerV1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -21,9 +25,9 @@ type App struct {
 	httpServer *http.Server
 }
 
-func NewApp(ctx context.Context, configPath string) (*App, error) {
+func NewApp(ctx context.Context, configPath string, level string) (*App, error) {
 	a := App{}
-	err := a.initDeps(ctx, configPath)
+	err := a.initDeps(ctx, configPath, level)
 	if err != nil {
 		log.Fatalf("error creating app %s", err.Error())
 	}
@@ -31,7 +35,7 @@ func NewApp(ctx context.Context, configPath string) (*App, error) {
 }
 
 func (a *App) RunGRPCServer() error {
-	log.Printf("Running GRPC Server on: %v", a.provider.GRPCConfig().Address())
+	logger.Info("Running GRPC Server on: %v", zap.String("address", a.provider.GRPCConfig().Address()))
 
 	list, err := net.Listen("tcp", a.provider.GRPCConfig().Address())
 	if err != nil {
@@ -46,7 +50,7 @@ func (a *App) RunGRPCServer() error {
 }
 
 func (a *App) RunHTTPServer() error {
-	log.Printf("Running HTTP Server on: %v", a.ServiceProvider().HTTPConfig().Address())
+	logger.Info("Running HTTP Server on: %v", zap.String("address", a.provider.HTTPConfig().Address()))
 	err := a.httpServer.ListenAndServe()
 	if err != nil {
 		return err
@@ -54,11 +58,12 @@ func (a *App) RunHTTPServer() error {
 	return nil
 }
 
-func (a *App) initDeps(ctx context.Context, configPath string) error {
+func (a *App) initDeps(ctx context.Context, configPath string, level string) error {
 	err := a.initConfig(ctx, configPath)
 	if err != nil {
 		log.Fatalf("error loading config: %s", err.Error())
 	}
+	logger.Init(getCore(getLevel(level)))
 	inits := []func(context.Context) error{
 		a.initServiceProvider,
 		a.initServer,
@@ -83,7 +88,7 @@ func (a *App) initConfig(ctx context.Context, path string) error {
 }
 
 func (a *App) initServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.UnaryInterceptor(interceptor.ValidateInterceptor))
+	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.LogInterceptor, interceptor.ValidateInterceptor))
 
 	reflection.Register(a.grpcServer)
 
@@ -140,4 +145,27 @@ func (a *App) Run() error {
 	}()
 	wg.Wait()
 	return nil
+}
+
+func getCore(level zap.AtomicLevel) zapcore.Core {
+	stdout := zapcore.AddSync(os.Stdout)
+
+	developmentCfg := zap.NewDevelopmentEncoderConfig()
+
+	developmentCfg.TimeKey = "timestamp"
+	developmentCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	developmentCfg.EncodeLevel = zapcore.CapitalLevelEncoder
+
+	consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
+
+	return zapcore.NewCore(consoleEncoder, stdout, level)
+}
+
+func getLevel(level string) zap.AtomicLevel {
+	var lvl zapcore.Level
+	err := lvl.Set(level)
+	if err != nil {
+		log.Fatalf("failed to set level to logger: %v", err)
+	}
+	return zap.NewAtomicLevelAt(lvl)
 }
