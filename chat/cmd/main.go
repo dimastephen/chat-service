@@ -8,14 +8,17 @@ import (
 )
 
 var configPath string
+var level string
 
 func init() {
 	flag.StringVar(&configPath, "config", "local.env", "config path file")
+	flag.StringVar(&level, "loglvl", "info", "logger level")
 }
 
 func main() {
 	ctx := context.Background()
-	a, err := app.NewApp(ctx, configPath)
+	flag.Parse()
+	a, err := app.NewApp(ctx, configPath, level)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

@@ -7,11 +7,11 @@ import (
 	"github.com/dimastephen/auth/internal/config"
 	"github.com/dimastephen/auth/internal/config/env"
 	"github.com/dimastephen/auth/internal/repository"
-	"github.com/dimastephen/auth/internal/repository/accessRepo"
-	"github.com/dimastephen/auth/internal/repository/authRepo"
+	"github.com/dimastephen/auth/internal/repository/accessrepo"
+	"github.com/dimastephen/auth/internal/repository/authrepo"
 	"github.com/dimastephen/auth/internal/service"
-	"github.com/dimastephen/auth/internal/service/accessService"
-	"github.com/dimastephen/auth/internal/service/authService"
+	"github.com/dimastephen/auth/internal/service/accessservice"
+	"github.com/dimastephen/auth/internal/service/authservice"
 	"log"
 )
 

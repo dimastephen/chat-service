@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dimastephen/auth/internal/config"
+	"github.com/dimastephen/auth/internal/logger"
 	"github.com/dimastephen/auth/internal/models"
 	"github.com/dimastephen/auth/internal/repository"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"os"
 	"slices"
 )
@@ -27,6 +29,7 @@ func NewAccessRepository(ctx context.Context, config config.RedisConfig) (reposi
 	})
 
 	if err := client.Ping(ctx).Err(); err != nil {
+		logger.Error("failed to ping redis", zap.Error(err))
 		return nil, err
 	}
 
@@ -56,6 +59,7 @@ func (a *accessRepository) ReadRoles(ctx context.Context, endpoint string, info 
 func (a *accessRepository) Initialize(ctx context.Context, filepath string) error {
 	file, err := os.ReadFile(filepath)
 	if err != nil {
+		logger.Error("failed to read json with roles", zap.Error(err))
 		return fmt.Errorf("failed to read json with role mapping: %v", err)
 	}
 
@@ -63,6 +67,7 @@ func (a *accessRepository) Initialize(ctx context.Context, filepath string) erro
 
 	err = json.Unmarshal(file, &mapping)
 	if err != nil {
+		logger.Error("failed to unmarshall json with roles", zap.Error(err))
 		return fmt.Errorf("failed to unmarshall json: %v", err)
 	}
 
