@@ -3,9 +3,9 @@ package chatRepository
 import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/dimastephen/chatServer/internal/client/db"
 	"github.com/dimastephen/chatServer/internal/model"
 	"github.com/dimastephen/chatServer/internal/repository"
+	"github.com/dimastephen/utils/pkg/db"
 	"log"
 )
 

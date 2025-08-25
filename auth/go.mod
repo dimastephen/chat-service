@@ -3,7 +3,7 @@ module github.com/dimastephen/auth
 go 1.24.2
 
 require (
-	github.com/dimastephen/utils v0.0.0-20250610091522-19b8c2959032
+	github.com/dimastephen/utils v0.0.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/joho/godotenv v1.5.1
@@ -12,6 +12,7 @@ require (
 	golang.org/x/crypto v0.31.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
+	github.com/dimastephen/utils v0.0.1
 )
 
 require (

@@ -9,7 +9,7 @@ services:
     networks:
       - chat-network
     env_file:
-      - compose.env
+      - .env
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 10s
@@ -18,7 +18,7 @@ services:
   pg:
     image: postgres:17.2-alpine3.20
     env_file:
-      - compose.env
+      - .env
     environment:
       POSTGRES_USER: chat-user
       POSTGRES_PASSWORD: chat-password
@@ -40,7 +40,7 @@ services:
       context: .
       dockerfile: auth/Dockerfile
       no_cache: true
-    env_file: compose.env
+    env_file: .env
     depends_on:
       pg:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
       - "50052:50052"
     networks:
       - chat-network
-    command: ["./server", "-config=compose.env", "-loglvl=${INFOLEVEL}"]
+    command: ["./server", "-config=.env", "-loglvl=${INFOLEVEL}"]
 
 
   chat-service:
@@ -60,7 +60,7 @@ services:
       context: .
       dockerfile: chat/Dockerfile
       no_cache: true
-    env_file: compose.env
+    env_file: .env
     depends_on:
       pg:
         condition: service_healthy
@@ -69,10 +69,12 @@ services:
         condition: service_healthy
         restart: true
     ports:
+      - "8081:8081"
+      - "8090:8090"
       - "50051:50051"
     networks:
       - chat-network
-    command: ["./chat_server", "-config=compose.env", "-loglvl=${INFOLEVEL}"]
+    command: ["./chat_server", "-config=.env", "-loglvl=${DEBUGLEVEL}"]
 
 
 volumes:

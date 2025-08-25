@@ -2,11 +2,11 @@ package chatService
 
 import (
 	"context"
-	"github.com/dimastephen/chatServer/internal/client/db"
 	"github.com/dimastephen/chatServer/internal/logger"
 	"github.com/dimastephen/chatServer/internal/model"
 	"github.com/dimastephen/chatServer/internal/repository"
 	def "github.com/dimastephen/chatServer/internal/service"
+	"github.com/dimastephen/utils/pkg/db"
 	"go.uber.org/zap"
 )
 

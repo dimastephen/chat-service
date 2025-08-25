@@ -14,7 +14,15 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info:{
     title: "ChatAPI"
     version: "0.1"
+    contact: {
+      email: "dimabfbc@gmail.com"
+    }
   };
+  host:"localhost:8081",
+  schemes:HTTP,
+  schemes:HTTPS,
+  consumes: "application/json"
+  produces: "application/json"
 };
 
 service ChatServer{
@@ -24,11 +32,13 @@ service ChatServer{
       body: "*"
     };
   };
+
   rpc Delete(DeleteRequest) returns(DeleteResponse){
     option (google.api.http) = {
       delete: "/chat"
     };
   };
+
   rpc SendMessage(SendMessageRequest) returns(SendMessageResponse);
 }
 
