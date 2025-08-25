@@ -26,19 +26,16 @@
 ---
 
 ## 🗂️ Структура проекта
-├── chat/ # чат-сервис
-│ ├── cmd/ # main.go
-│ ├── internal/ # app, service, repository, api, interceptor и др.
-│ ├── migrations/ # SQL миграции
-│ └── api/ # protobuf/gRPC API
-│
-├── auth/ # сервис авторизации
-│ ├── cmd/ # main.go
-│ ├── internal/ # app, service, repository, jwt, crypto и др.
-│ └── api/ # protobuf/gRPC API
-│
-├── docker-compose.yaml # общий запуск сервисов
-└── Makefile # команды для запуска/сборки
+Проект состоит из двух сервисов:
+
+- **Chat Service** — работа с чатами и сообщениями.
+- **Auth Service** — аутентификация и управление токенами.
+
+Каждый сервис имеет одинаковую внутреннюю структуру:
+- `cmd/` — точка входа (`main.go`)
+- `internal/` — бизнес-логика, репозитории, api
+- `api/` — protobuf/gRPC API
+- `migrations/` (только у chat) — SQL миграции  
 
 ## 🚀 Запуск
 docker-compose up --build
