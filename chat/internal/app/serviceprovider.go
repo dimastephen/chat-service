@@ -3,22 +3,23 @@ package app
 import (
 	"context"
 	"github.com/dimastephen/chatServer/internal/api/chatApi"
-	"github.com/dimastephen/chatServer/internal/client/db"
-	"github.com/dimastephen/chatServer/internal/client/db/pg"
-	"github.com/dimastephen/chatServer/internal/client/db/transaction"
 	"github.com/dimastephen/chatServer/internal/config"
 	"github.com/dimastephen/chatServer/internal/config/env"
 	"github.com/dimastephen/chatServer/internal/repository"
 	chatRepository "github.com/dimastephen/chatServer/internal/repository/chat"
 	"github.com/dimastephen/chatServer/internal/service"
 	chatService "github.com/dimastephen/chatServer/internal/service/chat"
+	"github.com/dimastephen/utils/pkg/db"
+	"github.com/dimastephen/utils/pkg/db/pg"
+	"github.com/dimastephen/utils/pkg/db/transaction"
 	"log"
 )
 
 type ServiceProvider struct {
-	pgConfig   config.PGConfig
-	grpcConfig config.GRPCConfig
-	httpConfig config.HTTPConfig
+	pgConfig      config.PGConfig
+	grpcConfig    config.GRPCConfig
+	httpConfig    config.HTTPConfig
+	swaggerConfig config.SwaggerConfig
 
 	chatService service.Service
 
@@ -64,6 +65,17 @@ func (s *ServiceProvider) HTTPConfig() config.HTTPConfig {
 		s.httpConfig = cfg
 	}
 	return s.httpConfig
+}
+
+func (s *ServiceProvider) SwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := env.NewSwaggerConfig()
+		if err != nil {
+			log.Fatalf("error getting swaggerconfig in ServicePorvider %s", err.Error())
+		}
+		s.swaggerConfig = cfg
+	}
+	return s.swaggerConfig
 }
 
 func (s *ServiceProvider) DBClient(ctx context.Context) db.Client {

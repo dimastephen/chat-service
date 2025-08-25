@@ -19,7 +19,7 @@ FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /bin/chat_server .
 COPY ./chat/local.env .
-COPY ./compose.env .
+COPY ./.env .
 
 
 CMD ["./chat_server"]

@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	desc2 "github.com/dimastephen/auth/grpc/pkg/access_v1"
-	desc "github.com/dimastephen/auth/grpc/pkg/authV1"
 	"github.com/dimastephen/auth/internal/config"
 	"github.com/dimastephen/auth/internal/interceptor"
 	"github.com/dimastephen/auth/internal/logger"
+	desc2 "github.com/dimastephen/auth/pkg/access_v1"
+	desc "github.com/dimastephen/auth/pkg/authV1"
 	"github.com/dimastephen/utils/pkg/rate_limiter"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -65,7 +65,7 @@ func (a *App) initConfig(ctx context.Context, path string) error {
 
 func (a *App) initServer(ctx context.Context) error {
 	limiter := rate_limiter.NewTokenBucketLimiter(ctx, 10, time.Second)
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.NewRateLimiterInterceptor(limiter).Unary, interceptor.LogInterceptor))
+	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.NewRateLimiterInterceptor(limiter).Unary, interceptor.LogInterceptor, interceptor.ValidateInterceptor))
 	reflection.Register(a.grpcServer)
 	desc.RegisterAuthServer(a.grpcServer, a.provider.AuthImplementation(ctx))
 	desc2.RegisterAccessServer(a.grpcServer, a.provider.AccessImplementation(ctx))

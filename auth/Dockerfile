@@ -17,6 +17,6 @@ RUN go build  -o /bin/server ./cmd/main.go
 FROM alpine:latest
 COPY --from=builder /bin/server .
 COPY ./auth/local.env .
-COPY ./compose.env .
+COPY ./.env .
 COPY ./auth/roles.json .
 CMD ["./server"]

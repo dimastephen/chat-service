@@ -3,9 +3,9 @@ package access
 import (
 	"context"
 	"errors"
-	desc "github.com/dimastephen/auth/grpc/pkg/access_v1"
 	"github.com/dimastephen/auth/internal/logger"
 	"github.com/dimastephen/auth/internal/service"
+	desc "github.com/dimastephen/auth/pkg/access_v1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

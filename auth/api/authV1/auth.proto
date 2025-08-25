@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "validate/validate.proto";
+
 package authV1;
 
 option go_package="github.com/dimastephen/auth/grpc/pkg/authV1;authV1";
@@ -12,8 +14,8 @@ service Auth{
 }
 
 message RegisterRequest{
-  string username = 1;
-  string password = 2;
+  string username = 1[(validate.rules).string = {min_len: 1, max_len:50}];
+  string password = 2[(validate.rules).string = {min_len: 1, max_len:50}];
 }
 
 message RegisterResponse{
@@ -21,8 +23,8 @@ message RegisterResponse{
 }
 
 message LoginRequest{
-  string username = 1;
-  string password = 2;
+  string username = 1[(validate.rules).string = {min_len: 1, max_len:50}];;
+  string password = 2[(validate.rules).string = {min_len: 1, max_len:50}];;
 }
 
 message LoginResponse{
@@ -30,7 +32,7 @@ message LoginResponse{
 }
 
 message GetRefreshTokenRequest{
-  string refreshToken = 1;
+  string refreshToken = 1[(validate.rules).string = {min_len: 1}];
 }
 
 message GetRefreshTokenResponse{
@@ -38,7 +40,7 @@ message GetRefreshTokenResponse{
 }
 
 message GetAccessTokenRequest{
-  string refreshToken = 1;
+  string refreshToken = 1[(validate.rules).string = {min_len: 1}];
 }
 
 message GetAccessTokenResponse{

@@ -2,10 +2,10 @@ package auth
 
 import (
 	"context"
-	desc "github.com/dimastephen/auth/grpc/pkg/authV1"
 	"github.com/dimastephen/auth/internal/logger"
 	"github.com/dimastephen/auth/internal/models"
 	"github.com/dimastephen/auth/internal/service"
+	desc "github.com/dimastephen/auth/pkg/authV1"
 	"go.uber.org/zap"
 )
 

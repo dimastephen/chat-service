@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	err = a.Run()
+	err = a.Run(ctx)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
