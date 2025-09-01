@@ -5,9 +5,11 @@ import (
 	"github.com/dimastephen/chatServer/internal/config"
 	"github.com/dimastephen/chatServer/internal/interceptor"
 	"github.com/dimastephen/chatServer/internal/logger"
+	"github.com/dimastephen/chatServer/internal/metrics"
 	desc "github.com/dimastephen/chatServer/pkg/chatServerV1"
 	_ "github.com/dimastephen/chatServer/statik"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"go.uber.org/zap"
@@ -73,12 +75,33 @@ func (a *App) RunSwaggerServer() error {
 	return nil
 }
 
+func (a *App) RunPrometheus() error {
+	logger.Info("Running Prometheus server on", zap.String("address", "0.0.0.0:2112"))
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	prometheusServer := http.Server{
+		Addr:    "0.0.0.0:2112",
+		Handler: mux,
+	}
+
+	err := prometheusServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *App) initDeps(ctx context.Context, configPath string, level string) error {
 	err := a.initConfig(ctx, configPath)
 	if err != nil {
 		log.Fatalf("error loading config: %s", err.Error())
 	}
 	logger.Init(getCore(getLevel(level)))
+	err = metrics.Init(ctx)
+	if err != nil {
+		log.Fatalf("error initing metrics: %s", err.Error())
+	}
 	inits := []func(context.Context) error{
 		a.initServiceProvider,
 		a.initServer,
@@ -104,7 +127,7 @@ func (a *App) initConfig(ctx context.Context, path string) error {
 }
 
 func (a *App) initServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.LogInterceptor, interceptor.ValidateInterceptor))
+	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.MetricInterceptor, interceptor.LogInterceptor, interceptor.ValidateInterceptor))
 
 	reflection.Register(a.grpcServer)
 
@@ -167,7 +190,7 @@ func (a *App) ServiceProvider() *ServiceProvider {
 
 func (a *App) Run(ctx context.Context) error {
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -193,6 +216,14 @@ func (a *App) Run(ctx context.Context) error {
 		err := a.RunSwaggerServer()
 		if err != nil {
 			log.Fatalf("Error running Swagger server: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := a.RunPrometheus()
+		if err != nil {
+			log.Fatalf("Error running Prometheus: %v", err)
 		}
 	}()
 	wg.Wait()
