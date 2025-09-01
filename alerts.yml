@@ -1,0 +1,10 @@
+groups:
+  - name: alerts
+    rules:
+      - alert: TargetIsDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: medium
+        annotations:
+          summary: "Target is down"
