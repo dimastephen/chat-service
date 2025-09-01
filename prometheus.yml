@@ -13,3 +13,7 @@ scrape_configs:
   - job_name: "chat"
     static_configs:
       - targets: ["chat-service:2112"]
+
+  - job_name: "auth"
+    static_configs:
+      - targets: ["auth-service:2113"]

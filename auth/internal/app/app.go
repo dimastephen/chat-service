@@ -5,9 +5,11 @@ import (
 	"github.com/dimastephen/auth/internal/config"
 	"github.com/dimastephen/auth/internal/interceptor"
 	"github.com/dimastephen/auth/internal/logger"
+	"github.com/dimastephen/auth/internal/metrics"
 	desc2 "github.com/dimastephen/auth/pkg/access_v1"
 	desc "github.com/dimastephen/auth/pkg/authV1"
 	"github.com/dimastephen/utils/pkg/rate_limiter"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -15,7 +17,9 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
+	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -40,6 +44,10 @@ func (a *App) initDeps(ctx context.Context, configPath string, level string) err
 		log.Fatalf("Failed to init config: %v", err.Error())
 	}
 	logger.Init(getCore(getLevel(level)))
+	err = metrics.Init(ctx)
+	if err != nil {
+		log.Fatalf("Failed to init metrics: %s", err.Error())
+	}
 
 	inits := []func(ctx context.Context) error{
 		a.initServiceProvider,
@@ -65,7 +73,7 @@ func (a *App) initConfig(ctx context.Context, path string) error {
 
 func (a *App) initServer(ctx context.Context) error {
 	limiter := rate_limiter.NewTokenBucketLimiter(ctx, 10, time.Second)
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.NewRateLimiterInterceptor(limiter).Unary, interceptor.LogInterceptor, interceptor.ValidateInterceptor))
+	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()), grpc.ChainUnaryInterceptor(interceptor.MetricsInterceptor, interceptor.NewRateLimiterInterceptor(limiter).Unary, interceptor.LogInterceptor, interceptor.ValidateInterceptor))
 	reflection.Register(a.grpcServer)
 	desc.RegisterAuthServer(a.grpcServer, a.provider.AuthImplementation(ctx))
 	desc2.RegisterAccessServer(a.grpcServer, a.provider.AccessImplementation(ctx))
@@ -77,8 +85,8 @@ func (a *App) initServiceProvider(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) Run() error {
-	logger.Info("Running GRPC Server", zap.String("port", a.provider.GRPCConfig().Address()))
+func (a *App) RunGRPCServer() error {
+	logger.Info("Running GRPC server", zap.String("address", a.provider.GRPCConfig().Address()))
 
 	list, err := net.Listen("tcp", a.provider.GRPCConfig().Address())
 	if err != nil {
@@ -89,6 +97,47 @@ func (a *App) Run() error {
 		return err
 	}
 
+	return nil
+}
+
+func (a *App) RunPrometheus() error {
+	logger.Info("Running Prometheus server", zap.String("address", a.provider.GRPCConfig().Address()))
+	mux := http.NewServeMux()
+
+	mux.Handle("/metrics", promhttp.Handler())
+	prometheusServer := http.Server{
+		Handler: mux,
+		Addr:    "0.0.0.0:2113",
+	}
+
+	err := prometheusServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) Run() error {
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		err := a.RunGRPCServer()
+		if err != nil {
+			log.Fatalf("failed to run grpc server: %s", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := a.RunPrometheus()
+		if err != nil {
+			log.Fatalf("failed to run prometheus server: %s", err)
+		}
+	}()
+
+	wg.Wait()
 	return nil
 }
 
