@@ -50,6 +50,7 @@ services:
         restart: true
     ports:
       - "50052:50052"
+      - "2113:2113"
     networks:
       - chat-network
     command: ["./server", "-config=.env", "-loglvl=${INFOLEVEL}"]

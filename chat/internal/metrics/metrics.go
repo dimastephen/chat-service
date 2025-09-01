@@ -33,7 +33,7 @@ func Init(_ context.Context) error {
 				Subsystem: "grpc",
 				Name:      appName + "_response_total",
 				Help:      "Количество ответов в секунду",
-			}, []string{"status", "method"}),
+			}, []string{"service", "status", "method"}),
 	}
 	return nil
 }
@@ -43,5 +43,5 @@ func IncRequestCounter() {
 }
 
 func IncResponseCounter(status string, method string) {
-	metrics.responseCounter.WithLabelValues(status, method).Inc()
+	metrics.responseCounter.WithLabelValues("auth", status, method).Inc()
 }

@@ -45,7 +45,7 @@ generate-access-api:
            api/accessV1/access.proto
 
 
-vendor-protogen:
+vendor-proto:
 	@if [ ! -d vendor.protogen/google ]; then \
       		git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
       		mkdir -p vendor.protogen/google/ &&\
