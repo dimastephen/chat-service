@@ -8,6 +8,7 @@ import (
 	def "github.com/dimastephen/chatServer/internal/service"
 	"github.com/dimastephen/utils/pkg/db"
 	"go.uber.org/zap"
+	"time"
 )
 
 type service struct {
@@ -23,6 +24,9 @@ func NewService(noteRepository repository.ChatRepository, txManager db.TxManager
 }
 
 func (s *service) Create(ctx context.Context, info *model.CreateInfo) (*model.CreateInfo, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	resp := &model.CreateInfo{}
 	logger.Debug("Creating chat with", zap.Any("usernames", info.Usernames))
 	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
@@ -47,6 +51,9 @@ func (s *service) Create(ctx context.Context, info *model.CreateInfo) (*model.Cr
 }
 
 func (s *service) Delete(ctx context.Context, info *model.DeleteInfo) (err error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	logger.Debug("Deleting chat with", zap.Int("id", int(info.Id)))
 	err = s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
 		var errTx error

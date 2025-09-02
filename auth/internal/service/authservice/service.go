@@ -29,6 +29,9 @@ func NewAuthService(repo repository.AuthRepository, secret config.SecretKey) ser
 	return &authservice{repo: repo, secret: secret}
 }
 func (a *authservice) Register(ctx context.Context, user *models.User) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	if user == nil {
 		logger.Error("User model in service is nil")
 		return 0, errors.New("user model in service is nil")
@@ -48,6 +51,9 @@ func (a *authservice) Register(ctx context.Context, user *models.User) (int, err
 }
 
 func (a *authservice) Login(ctx context.Context, user *models.User) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	if user == nil {
 		logger.Error("user model in service is nil")
 		return "", errors.New("user model in service is nil")
@@ -73,7 +79,10 @@ func (a *authservice) Login(ctx context.Context, user *models.User) (string, err
 	return tokenStr, nil
 }
 
-func (a *authservice) GetRefreshToken(_ context.Context, tokenStr string) (string, error) {
+func (a *authservice) GetRefreshToken(ctx context.Context, tokenStr string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	claims, err := jwt.VerifyToken(tokenStr, a.secret.RefreshKey())
 	if err != nil {
 		logger.Error("Error in verifying old refresh token", zap.Error(err))
@@ -87,7 +96,10 @@ func (a *authservice) GetRefreshToken(_ context.Context, tokenStr string) (strin
 	return token, nil
 }
 
-func (a *authservice) GetAccessToken(_ context.Context, tokenStr string) (string, error) {
+func (a *authservice) GetAccessToken(ctx context.Context, tokenStr string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	claims, err := jwt.VerifyToken(tokenStr, a.secret.RefreshKey())
 	if err != nil {
 		logger.Error("Error in verifying old access token", zap.Error(err))

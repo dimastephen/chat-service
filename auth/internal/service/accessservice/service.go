@@ -11,6 +11,7 @@ import (
 	"github.com/dimastephen/auth/internal/service"
 	"google.golang.org/grpc/metadata"
 	"strings"
+	"time"
 )
 
 type accessService struct {
@@ -23,6 +24,9 @@ func NewAccessService(accessRepo repository.AccessRepository, secret config.Secr
 }
 
 func (a *accessService) Check(ctx context.Context, endpoint string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		logger.Error("Faild to get metadata")
